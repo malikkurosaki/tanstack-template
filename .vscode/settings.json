@@ -1,0 +1,45 @@
+{
+	// === TanStack generated files ===
+	"files.watcherExclude": {
+		"**/routeTree.gen.ts": true
+	},
+	"search.exclude": {
+		"**/routeTree.gen.ts": true
+	},
+	"files.readonlyInclude": {
+		"**/routeTree.gen.ts": true
+	},
+
+	// === Global formatter ===
+	"editor.defaultFormatter": "biomejs.biome",
+	"editor.formatOnSave": true,
+
+	// === Language-specific (explicit, avoid fallback) ===
+	"[javascript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[javascriptreact]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "vscode.typescript-language-features"
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "vscode.typescript-language-features"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[jsonc]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[css]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+
+	// === Biome actions ===
+	"editor.codeActionsOnSave": {
+		"source.organizeImports.biome": "explicit",
+		"source.fixAll.biome": "explicit"
+	}
+}
