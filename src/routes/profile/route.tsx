@@ -134,14 +134,18 @@ function ProfileLayout() {
 
 					<div className="flex flex-1 items-center justify-between">
 						<h1 className="text-lg font-semibold">{title}</h1>
-
-						<Button
-							size="sm"
-							variant="outline"
-							onClick={() => navigate({ to: "/" })}
-						>
-							Back to App
-						</Button>
+						<div className="flex flex-row gap-2">
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={() => navigate({ to: "/" })}
+							>
+								Back to App
+							</Button>
+							<Button size={"sm"} variant={"outline"} onClick={() => {
+								navigate({ to: "/dashboard", reloadDocument: true })
+							}}>Dashboard</Button>
+						</div>
 					</div>
 				</header>
 

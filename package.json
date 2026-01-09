@@ -1,7 +1,10 @@
 {
-  "name": "tanstack",
-  "private": true,
+  "name": "tanstack-template",
+  "private": false,
   "type": "module",
+  "version": "0.0.1",
+  "author": "Malik Kurosaki",
+  "license": "MIT",
   "scripts": {
     "dev": "bun --bun vite dev --port 3000",
     "build": "bun --bun vite build",
