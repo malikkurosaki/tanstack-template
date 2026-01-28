@@ -23,6 +23,12 @@ pnpm db:push              # Push schema changes to database
 pnpm db:migrate           # Run database migrations
 pnpm db:studio            # Open Prisma Studio
 pnpm db:seed              # Seed database
+
+# Backup & Recovery (Auto-commit System)
+bash bin/backup.sh        # Manual backup before changes
+bash .opencode/restore.sh # Restore project from previous commit
+bash .opencode/logs.sh    # View backup history
+git log --oneline -10     # View recent commits for restore
 ```
 
 ## Tech Stack
