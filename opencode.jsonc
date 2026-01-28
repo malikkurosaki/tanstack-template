@@ -1,0 +1,21 @@
+{
+	"version": "0.1.0",
+	"projectId": "tan-app",
+	"workspacePath": "/Users/bip/Documents/projects/tanstack/tan-app",
+	"backup": {
+		"enabled": true,
+		"method": "git",
+		"preCommitScript": ".opencode/pre-commit.sh",
+		"restoreScript": ".opencode/restore.sh",
+		"logsScript": ".opencode/logs.sh",
+		"logFile": ".opencode/backup.log",
+		"autoBackupBeforeChanges": true,
+		"maxLogLines": 1000
+	},
+	"safety": {
+		"confirmBeforeDestructive": true,
+		"warnBeforeOverwrite": true,
+		"keepSnapshots": 10,
+		"snapshotDir": ".opencode/snapshots"
+	}
+}
