@@ -36,7 +36,7 @@ mcpServer.registerTool(
     {
         title: "kirim informasi ke user",
         description:
-            "Gunakan tool ini untuk mengirim informasi kepada pengguna. Pesan harus dikirim dalam format whatsapp message",
+            "Gunakan tool ini untuk mengirim informasi kepada pengguna. Pesan harus dikirim dalam format teks biasa (plain text), bukan Markdown atau HTML, dengan bahasa yang jelas, sopan, dan mudah dipahami.",
         inputSchema: z.object({
             text: z.string(),
         }),
