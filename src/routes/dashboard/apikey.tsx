@@ -18,9 +18,8 @@ import {
 	Tooltip,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
-import { useDisclosure, useInputState } from "@mantine/hooks";
+import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import dayjs from "dayjs";
 import {
@@ -34,9 +33,20 @@ import {
 	Trash2,
 	X,
 } from "lucide-react";
-import { useState } from "react";
-import { api } from "@/lib/api-client";
+import { useEffect } from "react";
+import { useSnapshot } from "valtio";
 import { authMiddleware } from "@/middleware/auth";
+import {
+	apiKeyState,
+	copyApiKey,
+	createApiKey,
+	deleteApiKey,
+	loadApiKeys,
+	resetForm,
+	setExpiredAt,
+	setFormField,
+	toggleApiKey,
+} from "@/state/api_key.state";
 
 export const Route = createFileRoute("/dashboard/apikey")({
 	component: RouteComponent,
@@ -46,110 +56,15 @@ export const Route = createFileRoute("/dashboard/apikey")({
 });
 
 function RouteComponent() {
-	const queryClient = useQueryClient();
 	const [opened, { open, close }] = useDisclosure(false);
-	const [title, setTitle] = useInputState("");
-	const [description, setDescription] = useInputState("");
-	const [expiredAt, setExpiredAt] = useInputState<Date | null>(null);
-	const [copiedId, setCopiedId] = useState<string | null>(null);
+	const snap = useSnapshot(apiKeyState);
 
-	const { data: apikeys, isLoading } = useQuery({
-		queryKey: ["apikeys"],
-		queryFn: async () => {
-			const { data } = await api.apikey.get();
-			return data?.data;
-		},
-	});
-
-	const createMutation = useMutation({
-		mutationFn: async () => {
-			const { data } = await api.apikey.create.post({
-				title,
-				description,
-				expiresAt: expiredAt ? dayjs(expiredAt).toISOString() : undefined,
-			});
-
-			return data?.data;
-		},
-		onSuccess: () => {
-			console.log("success");
-			queryClient.invalidateQueries({ queryKey: ["apikeys"] });
-			handleClose();
-			notifications.show({
-				title: "Success",
-				message: "API key created successfully",
-				color: "green",
-			});
-		},
-		onError: (e) => {
-			console.log("ERROR", e);
-			notifications.show({
-				title: "Error",
-				message: "Failed to create API key",
-				color: "red",
-			});
-		},
-	});
-
-	const toggleMutation = useMutation({
-		mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
-			const { data } = await api.apikey({ id }).patch({ active });
-			return data?.data;
-		},
-		onSuccess: () => {
-			console.log("success");
-			queryClient.invalidateQueries({ queryKey: ["apikeys"] });
-			notifications.show({
-				title: "Success",
-				message: "API key updated successfully",
-				color: "green",
-			});
-		},
-		onError: () => {
-			console.log("error");
-			notifications.show({
-				title: "Error",
-				message: "Failed to update API key",
-				color: "red",
-			});
-		},
-	});
-
-	const deleteMutation = useMutation({
-		mutationFn: async (id: string) => {
-			const { data } = await api.apikey({ id }).delete();
-			return data?.message;
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["apikeys"] });
-			notifications.show({
-				title: "Success",
-				message: "API key deleted successfully",
-				color: "green",
-			});
-		},
-		onError: () => {
-			notifications.show({
-				title: "Error",
-				message: "Failed to delete API key",
-				color: "red",
-			});
-		},
-	});
-
-	const handleCopy = (apikey: string, id: string) => {
-		navigator.clipboard.writeText(apikey);
-		setCopiedId(id);
-		notifications.show({
-			title: "Copied",
-			message: "API key copied to clipboard",
-			color: "blue",
-		});
-		setTimeout(() => setCopiedId(null), 2000);
-	};
+	useEffect(() => {
+		loadApiKeys();
+	}, []);
 
 	const handleCreate = () => {
-		if (!title) {
+		if (!apiKeyState.form.title) {
 			notifications.show({
 				title: "Error",
 				message: "Title is required",
@@ -157,20 +72,35 @@ function RouteComponent() {
 			});
 			return;
 		}
-		createMutation.mutate();
+		createApiKey()
+			.then(() => {
+				notifications.show({
+					title: "Success",
+					message: "API key created successfully",
+					color: "green",
+				});
+				close();
+			})
+			.catch(() => {
+				notifications.show({
+					title: "Error",
+					message: "Failed to create API key",
+					color: "red",
+				});
+			});
 	};
 
 	const handleClose = () => {
-		setTitle("");
-		setDescription("");
-		setExpiredAt(null);
+		resetForm();
 		close();
 	};
 
-	const formatDate = (date: string | null | undefined) => {
+	const formatDate = (date: string | Date | null | undefined) => {
 		if (!date) return "No expiration";
 		return dayjs(date).format("MMM D, YYYY");
 	};
+
+	const isActive = (key: (typeof snap.data)[0]) => key.active ?? false;
 
 	return (
 		<Container size="xl" suppressHydrationWarning>
@@ -189,7 +119,7 @@ function RouteComponent() {
 				</Flex>
 
 				{/* API Keys List */}
-				{isLoading ? (
+				{snap.loading ? (
 					<Card withBorder p="xl">
 						<Stack gap="md">
 							<Skeleton height={60} radius="md" />
@@ -197,7 +127,7 @@ function RouteComponent() {
 							<Skeleton height={60} radius="md" />
 						</Stack>
 					</Card>
-				) : !apikeys || apikeys.length === 0 ? (
+				) : !snap.data || snap.data.length === 0 ? (
 					<Card withBorder p="xl">
 						<Stack align="center" py="xl">
 							<Box
@@ -227,7 +157,7 @@ function RouteComponent() {
 					</Card>
 				) : (
 					<Stack gap="md">
-						{apikeys.map((apikey) => (
+						{snap.data.map((apikey) => (
 							<Paper
 								key={apikey.id}
 								withBorder
@@ -255,7 +185,7 @@ function RouteComponent() {
 												width: 48,
 												height: 48,
 												borderRadius: 12,
-												backgroundColor: apikey.active
+												backgroundColor: isActive(apikey)
 													? "var(--mantine-color-green-0)"
 													: "var(--mantine-color-red-0)",
 												display: "flex",
@@ -266,7 +196,7 @@ function RouteComponent() {
 											<Key
 												size={24}
 												color={
-													apikey.active
+													isActive(apikey)
 														? "var(--mantine-color-green-7)"
 														: "var(--mantine-color-red-7)"
 												}
@@ -280,9 +210,9 @@ function RouteComponent() {
 												<Badge
 													size="sm"
 													variant="light"
-													color={apikey.active ? "green" : "red"}
+													color={isActive(apikey) ? "green" : "red"}
 												>
-													{apikey.active ? "Active" : "Disabled"}
+													{isActive(apikey) ? "Active" : "Disabled"}
 												</Badge>
 											</Group>
 											<Group gap="xs">
@@ -291,7 +221,9 @@ function RouteComponent() {
 													{apikey.apikey.slice(-4)}
 												</Text>
 												<Tooltip
-													label={copiedId === apikey.id ? "Copied!" : "Copy"}
+													label={
+														snap.copiedId === apikey.id ? "Copied!" : "Copy"
+													}
 												>
 													<ActionIcon
 														variant="subtle"
@@ -299,10 +231,15 @@ function RouteComponent() {
 														color="gray"
 														onClick={(e) => {
 															e.stopPropagation();
-															handleCopy(apikey.apikey, apikey.id);
+															copyApiKey(apikey.apikey, apikey.id);
+															notifications.show({
+																title: "Copied",
+																message: "API key copied to clipboard",
+																color: "blue",
+															});
 														}}
 													>
-														{copiedId === apikey.id ? (
+														{snap.copiedId === apikey.id ? (
 															<X size={14} />
 														) : (
 															<Copy size={14} />
@@ -339,25 +276,36 @@ function RouteComponent() {
 													Expires
 												</Text>
 											</Group>
-											<Text size="sm">{formatDate(apikey.expiresAt as any)}</Text>
+											<Text size="sm">{formatDate(apikey.expiresAt)}</Text>
 										</Box>
 									</Flex>
 
 									{/* Right Section - Actions */}
 									<Group gap="xs">
-										<Tooltip label={apikey.active ? "Disable" : "Enable"}>
+										<Tooltip label={isActive(apikey) ? "Disable" : "Enable"}>
 											<ActionIcon
 												variant="light"
 												size="lg"
-												color={apikey.active ? "yellow" : "green"}
+												color={isActive(apikey) ? "yellow" : "green"}
 												onClick={() =>
-													toggleMutation.mutate({
-														id: apikey.id,
-														active: !apikey.active,
-													})
+													toggleApiKey(apikey.id, !isActive(apikey))
+														.then(() => {
+															notifications.show({
+																title: "Success",
+																message: "API key updated successfully",
+																color: "green",
+															});
+														})
+														.catch(() => {
+															notifications.show({
+																title: "Error",
+																message: "Failed to update API key",
+																color: "red",
+															});
+														})
 												}
 											>
-												{apikey.active ? (
+												{isActive(apikey) ? (
 													<ToggleRight size={18} />
 												) : (
 													<ToggleLeft size={18} />
@@ -369,7 +317,23 @@ function RouteComponent() {
 												variant="light"
 												size="lg"
 												color="red"
-												onClick={() => deleteMutation.mutate(apikey.id)}
+												onClick={() =>
+													deleteApiKey(apikey.id)
+														.then(() => {
+															notifications.show({
+																title: "Success",
+																message: "API key deleted successfully",
+																color: "green",
+															});
+														})
+														.catch(() => {
+															notifications.show({
+																title: "Error",
+																message: "Failed to delete API key",
+																color: "red",
+															});
+														})
+												}
 											>
 												<Trash2 size={18} />
 											</ActionIcon>
@@ -400,22 +364,28 @@ function RouteComponent() {
 						<TextInput
 							label="Title"
 							placeholder="My API Key"
-							value={title}
-							onChange={setTitle}
+							value={snap.form.title}
+							onChange={(e) => setFormField("title", e.currentTarget.value)}
 							required
 							leftSection={<FileText size={16} />}
 						/>
 						<TextInput
 							label="Description"
 							placeholder="Optional description"
-							value={description}
-							onChange={setDescription}
+							value={snap.form.description}
+							onChange={(e) =>
+								setFormField("description", e.currentTarget.value)
+							}
 							leftSection={<FileText size={16} />}
 						/>
 						<DateInput
 							label="Expiration Date"
 							placeholder="Optional expiration date"
-							value={expiredAt ? dayjs(expiredAt).format("YYYY-MM-DD") : null}
+							value={
+								snap.form.expiredAt
+									? dayjs(snap.form.expiredAt).format("YYYY-MM-DD")
+									: null
+							}
 							onChange={(value) => setExpiredAt(value ? new Date(value) : null)}
 							minDate={new Date()}
 							leftSection={<Calendar size={16} />}
@@ -433,7 +403,7 @@ function RouteComponent() {
 							</Button>
 							<Button
 								onClick={handleCreate}
-								loading={createMutation.isPending}
+								loading={snap.loadingCreate}
 								leftSection={<Plus size={16} />}
 							>
 								Create API Key
