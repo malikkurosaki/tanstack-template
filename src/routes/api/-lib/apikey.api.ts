@@ -1,9 +1,8 @@
 import dayjs from "dayjs";
 import Elysia, { t } from "elysia";
 import { SignJWT } from "jose";
-import { prisma } from "@/db";
+import { prisma } from "@/lib/db";
 import type { User } from "@/generated/prisma/client";
-
 
 const ApikeyApi = new Elysia({
 	prefix: "/apikey",
@@ -28,10 +27,10 @@ const ApikeyApi = new Elysia({
 	.post(
 		"/create",
 		async (ctx) => {
-			const { user }: { user: User } = ctx as { user: User };
+			const { user }: { user: User } = ctx as any;
 			const { body } = ctx;
 
-            console.log(body)
+			console.log(body)
 
 			if (!process.env.JWT_SECRET) {
 				throw new Error("JWT_SECRET is not defined");

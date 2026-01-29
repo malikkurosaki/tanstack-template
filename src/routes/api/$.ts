@@ -1,12 +1,11 @@
+import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
+import { apiMiddleware } from "@/middleware/api";
 import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 import { createFileRoute } from "@tanstack/react-router";
 import { Elysia } from "elysia";
-import { prisma } from "@/db";
-import { auth } from "@/lib/auth";
-import { apiMiddleware } from "@/middleware/api";
 import { ApikeyApi } from "./-lib/apikey.api";
-import { ProjectApi } from "./-lib/project.api";
 import { TaskApi } from "./-lib/task.api";
 import { UserApi } from "./-lib/users.api";
 
@@ -23,8 +22,8 @@ export const app = new Elysia({
 	.use(
 		dev
 			? swagger({
-					path: "/docs",
-				})
+				path: "/docs",
+			})
 			: (app) => app.get("/docs", "docs dev only"),
 	)
 	.get("/me/:id", async ({ params }) => {

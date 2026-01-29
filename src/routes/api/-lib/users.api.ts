@@ -1,5 +1,4 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: <explanation */
-import { prisma } from "@/db";
+import { prisma } from "@/lib/db";
 import type { User } from "@/generated/prisma/client";
 import Elysia, { t } from "elysia";
 

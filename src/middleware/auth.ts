@@ -1,7 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: explanation */
-
-import type { User } from "@/generated/prisma/client";
-import { UserRole } from "@/generated/prisma/enums";
 import { auth } from "@/lib/auth";
 import { redirect } from "@tanstack/react-router";
 import { createMiddleware } from "@tanstack/react-start";
@@ -18,7 +14,7 @@ const getUser = async () => {
 		headers,
 	});
 
-	const { data: user }: { data: User | null } = await res.json();
+	const { data: user }: { data: any | null } = await res.json();
 
 	if (session && user) {
 		(session.user as any).role = user.role
@@ -43,7 +39,7 @@ export const authMiddleware = createMiddleware().server(
 
 
 		if (pathname.startsWith("/dashboard")) {
-			if (user?.role !== UserRole.ADMIN) {
+			if (user?.role !== "ADMIN") {
 				throw redirect({ to: "/profile", replace: true });
 			}
 

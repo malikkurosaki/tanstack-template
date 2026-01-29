@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: <explanation */
 import { auth } from "./auth";
 
 const sessionCache = new WeakMap<Request, any>();

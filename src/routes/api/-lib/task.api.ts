@@ -1,8 +1,6 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
-
 import Elysia, { t } from "elysia";
-import { prisma } from "@/db";
-import type { User } from "@/generated/prisma/client";
+import { prisma } from "@/lib/db";
+import { ProjectPriority, TaskPriority, TaskStatus, User } from "@/generated/prisma/client";
 
 const TaskApi = new Elysia({
 	prefix: "task",
@@ -193,8 +191,8 @@ const TaskApi = new Elysia({
 					description: body.description,
 					projectId: body.projectId,
 					createdById: user.id,
-					status: (body.status as any) || "TODO",
-					priority: (body.priority as any) || "MEDIUM",
+					status: (body.status as TaskStatus) || "TODO",
+					priority: (body.priority as ProjectPriority) || "MEDIUM",
 					startDate: body.startDate,
 					dueDate: body.dueDate,
 					estimatedHours: body.estimatedHours,
@@ -202,11 +200,11 @@ const TaskApi = new Elysia({
 					position: body.position,
 					assignments: body.assigneeIds
 						? {
-								create: body.assigneeIds.map((userId: string) => ({
-									userId,
-									assignedById: user.id,
-								})),
-							}
+							create: body.assigneeIds.map((userId: string) => ({
+								userId,
+								assignedById: user.id,
+							})),
+						}
 						: undefined,
 				},
 				include: {
@@ -278,8 +276,8 @@ const TaskApi = new Elysia({
 				data: {
 					title: body.title,
 					description: body.description,
-					status: body.status as any,
-					priority: body.priority as any,
+					status: body.status as TaskStatus || "TODO",
+					priority: body.priority as TaskPriority || "MEDIUM",
 					startDate: body.startDate,
 					dueDate: body.dueDate,
 					estimatedHours: body.estimatedHours,
@@ -317,7 +315,7 @@ const TaskApi = new Elysia({
 					data: {
 						taskId: id,
 						fromStatus: existingTask.status,
-						toStatus: body.status as any,
+						toStatus: body.status as TaskStatus || "TODO",
 						changedById: user.id,
 					},
 				});
@@ -350,8 +348,8 @@ const TaskApi = new Elysia({
 			body: t.Object({
 				title: t.Optional(t.String()),
 				description: t.Optional(t.String()),
-				status: t.Optional(t.String() as any),
-				priority: t.Optional(t.String() as any),
+				status: t.Optional(t.Enum(TaskStatus)),
+				priority: t.Optional(t.Enum(TaskPriority)),
 				startDate: t.Optional(t.String()),
 				dueDate: t.Optional(t.String()),
 				estimatedHours: t.Optional(t.Number()),
