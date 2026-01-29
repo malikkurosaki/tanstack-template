@@ -4,7 +4,7 @@ import * as z from "zod"
 import { execSync } from "node:child_process"
 import fs from "node:fs"
 import path from "node:path"
-import { markdownToWhatsApp } from "./src/markdown_to_wa"
+import { markdownToTelegram } from "./src/markdown_to_wa"
 
 const mcpServer = new McpServer({
     name: "tanstack-mcp",
@@ -53,7 +53,7 @@ mcpServer.registerTool(
             },
             body: JSON.stringify({
                 chat_id: CHAT_ID,
-                text: markdownToWhatsApp(text),
+                text: markdownToTelegram(text),
             }),
         });
         const data = await res.json()
