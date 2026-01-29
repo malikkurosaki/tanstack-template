@@ -36,7 +36,7 @@ mcpServer.registerTool(
     {
         title: "kirim informasi ke user",
         description:
-            "Gunakan tool ini untuk mengirim informasi ke user , gunakan format txt yang baik dan benar",
+            "Gunakan tool ini untuk mengirim informasi kepada pengguna. Pesan harus dikirim dalam format teks biasa (plain text), bukan Markdown atau HTML, dengan bahasa yang jelas, sopan, dan mudah dipahami.",
         inputSchema: z.object({
             text: z.string(),
         }),
@@ -52,7 +52,7 @@ mcpServer.registerTool(
             },
             body: JSON.stringify({
                 chat_id: CHAT_ID,
-                text: text,
+                text: encodeURIComponent(text),
             }),
         });
         const data = await res.json()
