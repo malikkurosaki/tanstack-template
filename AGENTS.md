@@ -122,6 +122,48 @@ export const Route = createFileRoute("/path")({
 - Client vars: must have `VITE_` prefix
 - Use `.env` file (not `.env.local` - uses dotenv-cli for db commands)
 
+## Notification Protocol
+
+### WAJIB: notify_user Setelah Tugas Selesai
+
+Setiap kali agen menyelesaikan tugas, `notify_user` HARUS dipanggil untuk menginformasikan progres dan hasil kepada user.
+
+#### Kapan Harus Memanggil notify_user
+
+1. **Sebelum memulai**: Jika ada pertanyaan atau klarifikasi yang dibutuhkan
+2. **Setelah membuat plan**: Presentasi plan dan minta approval
+3. **Sebelum aksi berisiko**: Sebelum modify/delete file (setelah git_snapshot)
+4. **Setelah step penting**: Setiap step selesai, update progres
+5. **Setelah tugas selesai**: Ringkasan hasil dan langkah selanjutnya
+
+#### Template Penggunaan
+
+```javascript
+// Sebelum membuat plan (jika ada pertanyaan)
+if (adaClarification) {
+  notify_user({ text: "Pertanyaan untuk user..." });
+}
+
+// Setelah membuat plan
+notify_user({ text: "Plan telah dibuat:\n1. Langkah pertama\n2. Langkah kedua\n\nMohon approve untuk dilanjutkan." });
+}
+
+// Sebelum modify/delete file
+notify_user({ text: "⚠️ Akan melakukan perubahan pada file X.\nSnapshot sudah dibuat.\nApakah ingin dilanjutkan?" });
+}
+
+// Setelah tugas selesai
+notify_user({ text: "✅ Tugas selesai!\n\nRingkasan hasil:\n- Hasil 1\n- Hasil 2\n\nLangkah selanjutnya:" });
+```
+
+#### Checklist Sebelum Menutup Tugas
+
+- [ ] notify_user sudah dipanggil dengan ringkasan hasil
+- [ ] Langkah selanjutnya sudah dijelaskan (jika ada)
+- [ ] Tidak ada file yang perlu di-backup/di-restore
+
+---
+
 ## Key Files to Reference
 
 - `biome.json`: Linting/formatting configuration
