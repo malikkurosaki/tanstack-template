@@ -7,20 +7,31 @@ import {
 	Title,
 	Tooltip,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 import {
 	createFileRoute,
 	Outlet,
 	useLocation,
 	useNavigate,
 } from "@tanstack/react-router";
-import {
-	Key,
-	LayoutDashboard,
-	Settings,
-	Users,
-} from "lucide-react";
+import { Key, LayoutDashboard, Settings, Users } from "lucide-react";
 import { useEffect, useState } from "react";
+
+// Hook for persisting sidebar state in localStorage
+function useSidebarState() {
+	const [opened, setOpened] = useState(() => {
+		if (typeof window === "undefined") return true;
+		const saved = localStorage.getItem("dashboard-sidebar-opened");
+		return saved !== null ? saved === "true" : true;
+	});
+
+	useEffect(() => {
+		localStorage.setItem("dashboard-sidebar-opened", opened.toString());
+	}, [opened]);
+
+	const toggle = () => setOpened((prev) => !prev);
+
+	return [opened, toggle] as const;
+}
 
 // List Navbar
 const listNavbar = [
@@ -74,7 +85,7 @@ function RouteComponent() {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const path = location?.pathname ?? "";
-	const [opened, { toggle }] = useDisclosure(true);
+	const [opened, toggle] = useSidebarState();
 
 	return (
 		<AppShell
