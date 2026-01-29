@@ -1,3 +1,5 @@
+import type { AnySchema, ZodRawShapeCompat } from "./node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js"
+
 export interface MCPToolContent {
     type: "text"
     text: string
@@ -19,6 +21,8 @@ export interface MCPTool {
     name: string
     title: string
     description: string
-    inputSchema?: unknown
+    inputSchema?: undefined | ZodRawShapeCompat | AnySchema
     handler: (...args: unknown[]) => Promise<MCPToolResponse>
 }
+
+export type { AnySchema, ZodRawShapeCompat }
