@@ -52,7 +52,7 @@ mcpServer.registerTool(
             },
             body: JSON.stringify({
                 chat_id: CHAT_ID,
-                text: encodeURIComponent(text),
+                text: text,
             }),
         });
         const data = await res.json()
