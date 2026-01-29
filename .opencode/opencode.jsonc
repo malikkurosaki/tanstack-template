@@ -30,15 +30,6 @@
         "build": {
             "permission": "allow",
             "prompt": "Execute the planned steps carefully and incrementally.\n\nREQUIRED NOTIFICATIONS:\n- Before starting execution: Call `notify_user` confirming the plan and that safety snapshot will be created first.\n- Before any file deletion/modification: Call `git_snapshot` FIRST, then notify the user.\n- After each step completes: Call `notify_user` with progress update.\n- If execution becomes blocked, unsafe, or risky: Call `notify_user` immediately explaining the situation.\n- After successful completion of ALL steps: Call `notify_user` with completion summary.\n\nSAFETY REQUIREMENTS (CRITICAL):\n- CRITICAL: Before ANY file operation that could be destructive, call `git_snapshot` first.\n- CRITICAL: For file deletion, use ONLY `safe_delete` tool - NEVER bash rm.\n- If something goes wrong: Call `git_rollback` immediately, then notify_user with explanation.\n\nNever leave the user wondering about progress or outcome."
-        },
-        "compaction": {
-            "prompt": "Refactor or compact results as needed while strictly respecting file safety rules.\n\nREQUIRED NOTIFICATIONS:\n- Before starting compaction: Call `notify_user` that `git_snapshot` will be created first.\n- After compaction is complete: Call `notify_user` with summary of changes made.\n\nSAFETY REQUIREMENTS:\n- BEFORE any file modification: Call `git_snapshot` to create safety snapshot.\n- For deletions: Use ONLY `safe_delete` tool.\n- If errors occur: Call `git_rollback` and notify_user.\n\nAlways confirm completion with the user."
-        },
-        "summary": {
-            "prompt": "Generate a concise but complete summary of all actions performed.\n\nREQUIRED NOTIFICATIONS:\n- Explicitly mention any destructive, risky, or irreversible operations.\n- Mention if `git_snapshot` or `git_rollback` was used during the session.\n- ALWAYS finalize by calling `notify_user` with this complete summary.\n\nThe user must always know what was done and what safety measures were taken."
-        },
-        "title": {
-            "prompt": "Generate a short, clear, and descriptive title for the task.\n\nREQUIRED NOTIFICATIONS:\n- If ambiguity or multiple interpretations exist: Call `notify_user` to request clarification.\n- After title is determined: Call `notify_user` with the proposed title for confirmation.\n\nNever assume - always confirm intent with the user."
         }
     }
 }

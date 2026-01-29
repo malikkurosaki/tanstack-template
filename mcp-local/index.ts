@@ -36,7 +36,7 @@ mcpServer.registerTool(
     {
         title: "kirim informasi ke user",
         description:
-            "Gunakan tool ini untuk mengirim informasi ke user , gunakan format whatsapp text yang baik dan benar",
+            "Gunakan tool ini untuk mengirim informasi ke user , gunakan format txt yang baik dan benar",
         inputSchema: z.object({
             text: z.string(),
         }),
@@ -101,6 +101,142 @@ mcpServer.registerTool(
         execSync("git reset --hard HEAD~1", { stdio: "ignore" })
         return {
             content: [{ type: "text", text: "Rollback to previous snapshot done" }],
+        }
+    }
+)
+
+/* ------------------------------------------------------------------
+ * 🗄️ TOOL: Prisma Database
+ * ------------------------------------------------------------------ */
+mcpServer.registerTool(
+    "prisma_database",
+    {
+        title: "prisma database operations",
+        description:
+            "Operasi database Prisma: generate client, push schema, migrate, studio, seed, atau query data",
+        inputSchema: z.object({
+            action: z.enum([
+                "generate",
+                "push",
+                "migrate",
+                "studio",
+                "seed",
+                "query",
+                "status",
+            ]),
+            query: z.string().optional(),
+            schema: z.string().optional(),
+        }),
+    },
+    async ({ action, query, schema }) => {
+        try {
+            switch (action) {
+                case "generate":
+                    execSync("pnpm db:generate", { stdio: "inherit" })
+                    return {
+                        content: [
+                            {
+                                type: "text",
+                                text: "Prisma client generated successfully",
+                            },
+                        ],
+                    }
+                case "push":
+                    execSync("pnpm db:push", { stdio: "inherit" })
+                    return {
+                        content: [
+                            {
+                                type: "text",
+                                text: "Schema pushed to database successfully",
+                            },
+                        ],
+                    }
+                case "migrate":
+                    execSync("pnpm db:migrate", { stdio: "inherit" })
+                    return {
+                        content: [
+                            {
+                                type: "text",
+                                text: "Database migration completed",
+                            },
+                        ],
+                    }
+                case "studio":
+                    execSync("pnpm db:studio", { stdio: "inherit" })
+                    return {
+                        content: [
+                            {
+                                type: "text",
+                                text: "Prisma Studio opened",
+                            },
+                        ],
+                    }
+                case "seed":
+                    execSync("pnpm db:seed", { stdio: "inherit" })
+                    return {
+                        content: [
+                            {
+                                type: "text",
+                                text: "Database seeding completed",
+                            },
+                        ],
+                    }
+                case "query":
+                    if (!query) {
+                        return {
+                            content: [
+                                {
+                                    type: "text",
+                                    text: "Query is required for 'query' action",
+                                },
+                            ],
+                        }
+                    }
+                    // Execute query using npx prisma query
+                    const queryResult = execSync(
+                        `npx prisma execute-query "${query.replace(/"/g, '\\"')}"`,
+                        { encoding: "utf-8" }
+                    )
+                    return {
+                        content: [
+                            {
+                                type: "text",
+                                text: queryResult,
+                            },
+                        ],
+                    }
+                case "status":
+                    const statusResult = execSync(
+                        "npx prisma status",
+                        { encoding: "utf-8" }
+                    )
+                    return {
+                        content: [
+                            {
+                                type: "text",
+                                text: statusResult,
+                            },
+                        ],
+                    }
+                default:
+                    return {
+                        content: [
+                            {
+                                type: "text",
+                                text: "Unknown action",
+                            },
+                        ],
+                    }
+            }
+        } catch (error) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+                    },
+                ],
+            }
         }
     }
 )
