@@ -36,7 +36,7 @@ mcpServer.registerTool(
     {
         title: "kirim informasi ke user",
         description:
-            "Gunakan tool ini untuk mengirim informasi kepada pengguna. Pesan harus dikirim dalam format teks biasa (plain text), bukan Markdown atau HTML, dengan bahasa yang jelas, sopan, dan mudah dipahami.",
+            "Gunakan tool ini untuk mengirim informasi kepada pengguna. Pesan harus dikirim dalam format plain text biasa dan jangan gunakan format markdown",
         inputSchema: z.object({
             text: z.string(),
         }),
