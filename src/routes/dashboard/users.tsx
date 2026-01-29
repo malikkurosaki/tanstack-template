@@ -2,16 +2,20 @@ import {
 	ActionIcon,
 	Avatar,
 	Badge,
+	Button,
 	Card,
 	Container,
+	Flex,
 	Group,
 	Table,
 	Text,
+	TextInput,
 	Title,
 } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Pencil, Trash } from "lucide-react";
+import { Pencil, Plus, Search, Trash } from "lucide-react";
+import { useState } from "react";
 import { api } from "@/lib/api-client";
 
 export const Route = createFileRoute("/dashboard/users")({
@@ -19,6 +23,7 @@ export const Route = createFileRoute("/dashboard/users")({
 });
 
 function RouteComponent() {
+	const [search, setSearch] = useState("");
 	const { data: users, isLoading } = useQuery({
 		queryKey: ["users"],
 		queryFn: async () => {
@@ -27,47 +32,84 @@ function RouteComponent() {
 		},
 	});
 
-	return (
-		<Container size="lg" py="lg">
-			<Title order={2} mb="xs">
-				Users
-			</Title>
-			<Text size="sm" c="dimmed" mb="lg">
-				Manage your application's users.
-			</Text>
+	const filteredUsers = users?.filter(
+		(user) =>
+			user.name.toLowerCase().includes(search.toLowerCase()) ||
+			user.email.toLowerCase().includes(search.toLowerCase()),
+	);
 
-			<Card withBorder radius="md" p="md">
-				<Table verticalSpacing="sm">
+	return (
+		<Container size="lg" py="xl">
+			<Flex justify="space-between" align="center" mb="lg">
+				<div>
+					<Title order={2} fw={700}>
+						Users
+					</Title>
+					<Text size="sm" c="dimmed" mt={4}>
+						Manage your application's users and permissions.
+					</Text>
+				</div>
+				<Button leftSection={<Plus size={16} />} variant="light">
+					Add User
+				</Button>
+			</Flex>
+
+			<Card withBorder radius="lg" p={0} shadow="sm">
+				<Flex
+					p="md"
+					bg="gray.0"
+					style={{ borderBottom: "1px solid var(--mantine-color-gray-2)" }}
+				>
+					<TextInput
+						placeholder="Search users..."
+						leftSection={<Search size={14} />}
+						value={search}
+						onChange={(e) => setSearch(e.target.value)}
+						styles={{
+							input: {
+								backgroundColor: "white",
+							},
+						}}
+						style={{ flex: 1, maxWidth: 320 }}
+					/>
+				</Flex>
+
+				<Table striped highlightOnHover verticalSpacing="md" p="sm">
 					<Table.Thead>
 						<Table.Tr>
 							<Table.Th>User</Table.Th>
 							<Table.Th>Role</Table.Th>
-							<Table.Th>Actions</Table.Th>
+							<Table.Th w={120}>Actions</Table.Th>
 						</Table.Tr>
 					</Table.Thead>
 					<Table.Tbody>
 						{isLoading ? (
 							<Table.Tr>
-								<Table.Td colSpan={3} align="center">
-									Loading...
+								<Table.Td colSpan={3} py="xl" ta="center">
+									<Text c="dimmed">Loading users...</Text>
 								</Table.Td>
 							</Table.Tr>
-						) : users?.length === 0 ? (
+						) : filteredUsers?.length === 0 ? (
 							<Table.Tr>
-								<Table.Td colSpan={3} align="center">
-									No users found.
+								<Table.Td colSpan={3} py="xl" ta="center">
+									<Text c="dimmed">
+										{search ? "No users match your search." : "No users found."}
+									</Text>
 								</Table.Td>
 							</Table.Tr>
 						) : (
-							users?.map((user) => (
+							filteredUsers?.map((user) => (
 								<Table.Tr key={user.id}>
 									<Table.Td>
 										<Group gap="sm">
 											<Avatar
-												size={40}
+												size={42}
 												src={user.image ?? undefined}
-												radius={40}
-											/>
+												radius="xl"
+												color="blue"
+											>
+												{user.name.charAt(0).toUpperCase()}
+											</Avatar>
 											<div>
 												<Text size="sm" fw={500}>
 													{user.name}
@@ -82,17 +124,29 @@ function RouteComponent() {
 										<Badge
 											color={user.role === "ADMIN" ? "blue" : "gray"}
 											variant="light"
+											radius="sm"
+											size="sm"
 										>
 											{user.role}
 										</Badge>
 									</Table.Td>
 									<Table.Td>
-										<Group gap={0} justify="flex-end">
-											<ActionIcon variant="subtle" color="gray">
-												<Pencil size={16} />
+										<Group gap={4} justify="flex-end">
+											<ActionIcon
+												variant="subtle"
+												color="gray"
+												radius="md"
+												size="lg"
+											>
+												<Pencil size={14} />
 											</ActionIcon>
-											<ActionIcon variant="subtle" color="red">
-												<Trash size={16} />
+											<ActionIcon
+												variant="subtle"
+												color="red"
+												radius="md"
+												size="lg"
+											>
+												<Trash size={14} />
 											</ActionIcon>
 										</Group>
 									</Table.Td>
@@ -102,6 +156,12 @@ function RouteComponent() {
 					</Table.Tbody>
 				</Table>
 			</Card>
+
+			{users && users.length > 0 && (
+				<Text size="xs" c="dimmed" mt="sm" ta="right">
+					Showing {filteredUsers?.length ?? 0} of {users.length} users
+				</Text>
+			)}
 		</Container>
 	);
 }
