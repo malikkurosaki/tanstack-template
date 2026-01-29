@@ -4,6 +4,7 @@ import * as z from "zod"
 import { execSync } from "node:child_process"
 import fs from "node:fs"
 import path from "node:path"
+import { markdownToWhatsApp } from "./src/markdown_to_wa"
 
 const mcpServer = new McpServer({
     name: "tanstack-mcp",
@@ -36,7 +37,7 @@ mcpServer.registerTool(
     {
         title: "kirim informasi ke user",
         description:
-            "Gunakan tool ini untuk mengirim informasi kepada pengguna. Pesan harus dikirim dalam format teks biasa (plain text), bukan Markdown atau HTML, dengan bahasa yang jelas, sopan, dan mudah dipahami.",
+            "Gunakan tool ini untuk mengirim informasi kepada pengguna",
         inputSchema: z.object({
             text: z.string(),
         }),
@@ -52,7 +53,7 @@ mcpServer.registerTool(
             },
             body: JSON.stringify({
                 chat_id: CHAT_ID,
-                text: text,
+                text: markdownToWhatsApp(text),
             }),
         });
         const data = await res.json()
