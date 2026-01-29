@@ -2,6 +2,9 @@
   "name": "tan-app",
   "private": true,
   "type": "module",
+  "overrides": {
+    "zod": "3.22.5"
+  },
   "scripts": {
     "dev": "bun --bun vite dev --port 3000",
     "build": "bun --bun vite build",
@@ -27,7 +30,7 @@
     "@mantine/form": "^8.3.13",
     "@mantine/hooks": "^8.3.12",
     "@mantine/notifications": "^8.3.12",
-    "@modelcontextprotocol/sdk": "^1.25.3",
+    "@modelcontextprotocol/sdk": "1.24.3",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "@t3-oss/env-core": "^0.13.8",
@@ -53,7 +56,7 @@
     "tailwindcss": "^4.0.6",
     "valtio": "^2.3.0",
     "vite-tsconfig-paths": "^6.0.2",
-    "zod": "^4.1.11"
+    "zod": "3.22.5"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.4",

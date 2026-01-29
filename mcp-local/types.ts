@@ -1,6 +1,6 @@
-import type { AnySchema, ZodRawShapeCompat } from "./node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js"
-import type { RequestHandlerExtra } from "./node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js"
-import type { ServerRequest, ServerNotification, CallToolResult } from "./node_modules/@modelcontextprotocol/sdk/dist/esm/types.js"
+import type { AnySchema, ZodRawShapeCompat } from "@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js"
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/dist/esm/shared/protocol.js"
+import type { ServerRequest, ServerNotification, CallToolResult } from "@modelcontextprotocol/sdk/dist/esm/types.js"
 
 export interface MCPToolContent {
     type: "text"
