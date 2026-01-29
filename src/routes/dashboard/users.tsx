@@ -57,19 +57,12 @@ function RouteComponent() {
 			<Card withBorder radius="lg" p={0} shadow="sm">
 				<Flex
 					p="md"
-					bg="gray.0"
-					style={{ borderBottom: "1px solid var(--mantine-color-gray-2)" }}
 				>
 					<TextInput
 						placeholder="Search users..."
 						leftSection={<Search size={14} />}
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
-						styles={{
-							input: {
-								backgroundColor: "white",
-							},
-						}}
 						style={{ flex: 1, maxWidth: 320 }}
 					/>
 				</Flex>
