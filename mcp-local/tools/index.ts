@@ -14,12 +14,11 @@ export * from "./communication"
 export * from "./reference"
 
 // Export all tools as a combined array
+import { communicationTools } from "./communication"
+import { fileTools } from "./file"
 import { gitTools } from "./git"
 import { prismaTools } from "./prisma"
-import { fileTools } from "./file"
-import { communicationTools } from "./communication"
 import { referenceTools } from "./reference"
-import type { MCPTool } from "../types.js"
 
 export const allTools = [
     ...gitTools,
