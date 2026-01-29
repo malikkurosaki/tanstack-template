@@ -47,8 +47,6 @@ function ProfilePage() {
 				shadow="sm"
 				radius="lg"
 				style={{
-					background:
-						"linear-gradient(135deg, var(--mantine-color-gray-0) 0%, var(--mantine-color-gray-1) 100%)",
 					overflow: "visible",
 				}}
 			>
@@ -56,7 +54,6 @@ function ProfilePage() {
 				<div
 					style={{
 						height: 120,
-						background: `linear-gradient(135deg, var(--mantine-color-${roleColor}-6) 0%, var(--mantine-color-${roleColor}-9) 100%)`,
 						borderRadius:
 							"var(--mantine-radius-lg) var(--mantine-radius-lg) 0 0",
 						margin: "-var(--mantine-spacing-md)",
