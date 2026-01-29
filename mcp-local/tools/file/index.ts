@@ -1,6 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
-import type { MCPTool } from "../../types.js"
+import type { MCPTool, AnySchema, ZodRawShapeCompat } from "../../types.js"
 
 interface FileArgs {
     filePath: string
@@ -20,7 +20,7 @@ export const safeDelete: MCPTool = {
             filePath: { type: "string" },
         },
         required: ["filePath"],
-    } as Record<string, unknown>,
+    } as unknown as undefined | ZodRawShapeCompat | AnySchema,
     handler: async (args: unknown) => {
         const { filePath } = args as FileArgs
 

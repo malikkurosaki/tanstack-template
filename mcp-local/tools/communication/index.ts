@@ -1,4 +1,4 @@
-import type { MCPTool } from "../../types.js"
+import type { MCPTool, AnySchema, ZodRawShapeCompat } from "../../types.js"
 
 interface NotifyArgs {
     text: string
@@ -18,7 +18,7 @@ export const notifyUser: MCPTool = {
             text: { type: "string" },
         },
         required: ["text"],
-    } as Record<string, unknown>,
+    } as unknown as undefined | ZodRawShapeCompat | AnySchema,
     handler: async (args: unknown) => {
         const { text } = args as NotifyArgs
 

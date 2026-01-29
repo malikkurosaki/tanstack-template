@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process"
-import type { MCPTool } from "../../types.js"
+import type { MCPTool, AnySchema, ZodRawShapeCompat } from "../../types.js"
 
 type PrismaAction = "generate" | "push" | "migrate" | "studio" | "seed" | "query" | "status"
 
@@ -28,7 +28,7 @@ export const prismaDatabase: MCPTool = {
             schema: { type: "string" },
         },
         required: ["action"],
-    } as Record<string, unknown>,
+    } as unknown as undefined | ZodRawShapeCompat | AnySchema,
     handler: async (args: unknown) => {
         const { action, query } = args as PrismaArgs
 

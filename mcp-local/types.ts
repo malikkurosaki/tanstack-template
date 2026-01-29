@@ -1,4 +1,6 @@
 import type { AnySchema, ZodRawShapeCompat } from "./node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js"
+import type { RequestHandlerExtra } from "./node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js"
+import type { ServerRequest, ServerNotification, CallToolResult } from "./node_modules/@modelcontextprotocol/sdk/dist/esm/types.js"
 
 export interface MCPToolContent {
     type: "text"
@@ -8,21 +10,20 @@ export interface MCPToolContent {
         priority?: number
         lastModified?: string
     }
+    _meta?: Record<string, unknown>
 }
 
-export interface MCPToolResponse {
-    content: MCPToolContent[]
-    _meta?: Record<string, unknown>
-    structuredContent?: Record<string, unknown>
-    isError?: boolean
-}
+export type MCPToolHandler = (
+    args: unknown,
+    extra: RequestHandlerExtra<ServerRequest, ServerNotification>
+) => CallToolResult | Promise<CallToolResult>
 
 export interface MCPTool {
     name: string
     title: string
     description: string
     inputSchema?: undefined | ZodRawShapeCompat | AnySchema
-    handler: (...args: unknown[]) => Promise<MCPToolResponse>
+    handler: MCPToolHandler
 }
 
 export type { AnySchema, ZodRawShapeCompat }
