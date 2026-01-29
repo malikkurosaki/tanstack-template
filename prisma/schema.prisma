@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
@@ -10,27 +10,103 @@ datasource db {
 enum UserRole {
   ADMIN
   USER
+  MANAGER
+  VIEWER
 }
 
-model Todo {
-  id        Int      @id @default(autoincrement())
-  title     String
-  createdAt DateTime @default(now())
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum ProjectPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ProjectMemberRole {
+  MEMBER
+  LEAD
+  VIEWER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  COMPLETED
+  REJECTED
+  ON_HOLD
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskAction {
+  CREATED
+  UPDATED
+  STATUS_CHANGED
+  PRIORITY_CHANGED
+  ASSIGNED
+  UNASSIGNED
+  COMMENTED
+  ATTACHMENT_ADDED
+  ATTACHMENT_REMOVED
+  DUE_DATE_CHANGED
+  STARTED
+  COMPLETED
+  REJECTED
+  REOPENED
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_UPDATED
+  TASK_COMPLETED
+  TASK_REJECTED
+  TASK_COMMENTED
+  TASK_MENTIONED
+  TASK_DUE_SOON
+  PROJECT_UPDATED
+  PROJECT_MEMBER_ADDED
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  role          UserRole  @default(USER)
-  apiKeys       ApiKey[]
-  active        Boolean   @default(true)
+  id                    String              @id
+  name                  String
+  email                 String
+  emailVerified         Boolean             @default(false)
+  image                 String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  sessions              Session[]
+  accounts              Account[]
+  role                  UserRole            @default(USER)
+  apiKeys               ApiKey[]
+  active                Boolean             @default(true)
+  
+  // Relations untuk Task Manager
+  createdProjects       Project[]           @relation("ProjectCreator")
+  ownedProjects         Project[]           @relation("ProjectOwner")
+  projectMembers        ProjectMember[]
+  createdTasks          Task[]              @relation("TaskCreator")
+  assignedTasks         TaskAssignment[]
+  assignedByTasks       TaskAssignment[]    @relation("AssignedBy")
+  taskComments          TaskComment[]
+  taskActivities        TaskActivity[]
+  statusHistoryChanges  TaskStatusHistory[] @relation("StatusChanger")
+  notifications         Notification[]
+  uploadedAttachments   TaskAttachment[]    @relation("AttachmentUploader")
 
   @@unique([email])
   @@map("user")
@@ -85,16 +161,273 @@ model Verification {
 }
 
 model ApiKey {
-  id          String @id @default(cuid())
+  id          String    @id @default(cuid())
   apikey      String
   title       String
   description String?
-  createdAt   DateTime? @default(now())
-  updatedAt   DateTime? @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   user        User?     @relation(fields: [userId], references: [id])
   userId      String?
-  active      Boolean?  @default(true)
+  active      Boolean   @default(true)
   expiresAt   DateTime? @default(dbgenerated("now() + interval '30 days'"))
+
   @@unique([apikey])
   @@map("apitoken")
+}
+
+// ============================================
+// TASK MANAGER MODELS
+// ============================================
+
+model Project {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  status      ProjectStatus   @default(PLANNING)
+  priority    ProjectPriority @default(MEDIUM)
+  startDate   DateTime?
+  endDate     DateTime?
+  dueDate     DateTime?
+  color       String?         // Untuk UI (hex color)
+  
+  createdById String
+  createdBy   User            @relation("ProjectCreator", fields: [createdById], references: [id])
+  ownerId     String
+  owner       User            @relation("ProjectOwner", fields: [ownerId], references: [id])
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  deletedAt   DateTime?       // Soft delete
+  
+  tasks       Task[]
+  members     ProjectMember[]
+  tags        ProjectTag[]
+
+  @@index([createdById])
+  @@index([ownerId])
+  @@index([status])
+  @@index([priority])
+  @@index([deletedAt])
+  @@map("project")
+}
+
+model ProjectMember {
+  id        String            @id @default(cuid())
+  projectId String
+  project   Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      ProjectMemberRole @default(MEMBER)
+  joinedAt  DateTime          @default(now())
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_member")
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  createdById String
+  createdBy   User         @relation("TaskCreator", fields: [createdById], references: [id])
+  
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+  
+  estimatedHours Float?
+  actualHours    Float?
+  
+  parentTaskId String?
+  parentTask   Task?   @relation("SubTasks", fields: [parentTaskId], references: [id], onDelete: SetNull)
+  subTasks     Task[]  @relation("SubTasks")
+  
+  position    Int?       // Untuk ordering dalam project/board
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?  // Soft delete
+  
+  assignments   TaskAssignment[]
+  comments      TaskComment[]
+  attachments   TaskAttachment[]
+  activities    TaskActivity[]
+  tags          TaskTag[]
+  checklists    TaskChecklist[]
+  statusHistory TaskStatusHistory[]
+
+  @@index([projectId, position])
+  @@index([parentTaskId, position])
+  @@index([createdById])
+  @@index([status])
+  @@index([priority])
+  @@index([parentTaskId])
+  @@index([dueDate])
+  @@index([deletedAt])
+  @@map("task")
+}
+
+model TaskAssignment {
+  id           String   @id @default(cuid())
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedById String?
+  assignedBy   User?    @relation("AssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
+  assignedAt   DateTime @default(now())
+
+  @@unique([taskId, userId])
+  @@index([taskId])
+  @@index([userId])
+  @@index([assignedById])
+  @@map("task_assignment")
+}
+
+model TaskComment {
+  id        String    @id @default(cuid())
+  content   String
+  taskId    String
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft delete
+
+  @@index([taskId])
+  @@index([userId])
+  @@index([deletedAt])
+  @@map("task_comment")
+}
+
+model TaskAttachment {
+  id         String   @id @default(cuid())
+  fileName   String
+  fileUrl    String
+  fileSize   Int?
+  fileType   String?
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploadedBy String
+  uploader   User     @relation("AttachmentUploader", fields: [uploadedBy], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@index([taskId])
+  @@index([uploadedBy])
+  @@map("task_attachment")
+}
+
+model TaskActivity {
+  id          String     @id @default(cuid())
+  taskId      String
+  task        Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      TaskAction
+  fieldName   String?    // Field yang diubah
+  oldValue    String?
+  newValue    String?
+  description String?    // Deskripsi aktivitas
+  createdAt   DateTime   @default(now())
+
+  @@index([taskId, createdAt])
+  @@index([userId])
+  @@index([action])
+  @@map("task_activity")
+}
+
+model TaskStatusHistory {
+  id          String      @id @default(cuid())
+  taskId      String
+  task        Task        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  fromStatus  TaskStatus?
+  toStatus    TaskStatus
+  changedById String
+  changedBy   User        @relation("StatusChanger", fields: [changedById], references: [id])
+  reason      String?     // Alasan perubahan status
+  createdAt   DateTime    @default(now())
+
+  @@index([taskId, createdAt])
+  @@index([changedById])
+  @@map("task_status_history")
+}
+
+model TaskChecklist {
+  id          String   @id @default(cuid())
+  title       String
+  isCompleted Boolean  @default(false)
+  position    Int      @default(0)
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([taskId, position])
+  @@map("task_checklist")
+}
+
+model Tag {
+  id        String       @id @default(cuid())
+  name      String
+  color     String?
+  createdAt DateTime     @default(now())
+  
+  tasks     TaskTag[]
+  projects  ProjectTag[]
+
+  @@unique([name])
+  @@map("tag")
+}
+
+model TaskTag {
+  id     String @id @default(cuid())
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tagId  String
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, tagId])
+  @@index([taskId])
+  @@index([tagId])
+  @@map("task_tag")
+}
+
+model ProjectTag {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, tagId])
+  @@index([projectId])
+  @@index([tagId])
+  @@map("project_tag")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  link      String?          // Link ke task/project terkait
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@index([type])
+  @@map("notification")
 }
