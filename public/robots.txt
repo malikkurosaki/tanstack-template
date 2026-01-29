@@ -1,3 +1,7 @@
+# TanStack App - Robots.txt
 # https://www.robotstxt.org/robotstxt.html
+
 User-agent: *
-Disallow:
+Allow: /
+
+Sitemap: https://tan-app.local/sitemap.xml
