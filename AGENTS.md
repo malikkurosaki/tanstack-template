@@ -4,25 +4,25 @@
 
 ```bash
 # Development
-pnpm dev                  # Start dev server on port 3000
-pnpm build               # Build for production
-pnpm preview             # Preview production build
+bun dev                  # Start dev server on port 3000
+bun build               # Build for production
+bun preview             # Preview production build
 
 # Code Quality
-pnpm lint                 # Run Biome linter
-pnpm format               # Format code with Biome
-pnpm check                # Run both lint and format checks
+bun lint                 # Run Biome linter
+bun format               # Format code with Biome
+bun check                # Run both lint and format checks
 
 # Testing
-pnpm test                 # Run all tests with Vitest
-pnpm test <pattern>       # Run tests matching pattern (e.g., pnpm test User)
+bun test                 # Run all tests with Vitest
+bun test <pattern>       # Run tests matching pattern (e.g., bun test User)
 
 # Database
-pnpm db:generate          # Generate Prisma client
-pnpm db:push              # Push schema changes to database
-pnpm db:migrate           # Run database migrations
-pnpm db:studio            # Open Prisma Studio
-pnpm db:seed              # Seed database
+bun db:generate          # Generate Prisma client
+bun db:push              # Push schema changes to database
+bun db:migrate           # Run database migrations
+bun db:studio            # Open Prisma Studio
+bun db:seed              # Seed database
 
 # Backup & Recovery (Auto-commit System)
 bash bin/backup.sh        # Manual backup before changes
@@ -96,7 +96,7 @@ Jika salah satu poin di atas **tidak terpenuhi**, agent **TIDAK BOLEH MELANJUTKA
 * Use **tabs** for indentation (not spaces)
 * Use **double quotes** for strings
 * Import organization is automatic (enabled via Biome)
-* Run `pnpm format` before committing
+* Run `bun format` before committing
 
 ### TypeScript
 
@@ -145,7 +145,7 @@ export const Route = createFileRoute("/path")({
 * Schema: `prisma/schema.prisma`
 * Generated client: `src/generated/prisma/`
 * Import prisma client: `import { prisma } from "@/db"`
-* Always run `pnpm db:generate` after schema changes
+* Always run `bun db:generate` after schema changes
 
 ### Authentication
 
@@ -171,7 +171,7 @@ export const Route = createFileRoute("/path")({
 
 * Tests use Vitest with jsdom environment
 * No existing test files - create `.test.ts` or `.test.tsx` files
-* Run single test: `pnpm test <test-name>`
+* Run single test: `bun test <test-name>`
 
 ### Environment Variables
 

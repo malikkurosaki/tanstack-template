@@ -19,12 +19,12 @@ A full-stack application built with TanStack ecosystem and modern web technologi
 
 - Node.js 18+
 - PostgreSQL database
-- pnpm (recommended) or npm
+- bun (recommended) or npm
 
 ### Installation
 
 ```bash
-pnpm install
+bun install
 ```
 
 ### Environment Setup
@@ -44,19 +44,19 @@ Required variables:
 
 ```bash
 # Generate Prisma client
-pnpm db:generate
+bun db:generate
 
 # Push schema to database
-pnpm db:push
+bun db:push
 
 # Run migrations (for production)
-pnpm db:migrate
+bun db:migrate
 
 # Seed database (if seed script exists)
-pnpm db:seed
+bun db:seed
 
 # Open Prisma Studio (database GUI)
-pnpm db:studio
+bun db:studio
 ```
 
 ### Development
@@ -64,7 +64,7 @@ pnpm db:studio
 Start the development server:
 
 ```bash
-pnpm dev
+bun dev
 ```
 
 The app will be available at `http://localhost:3000`
@@ -72,13 +72,13 @@ The app will be available at `http://localhost:3000`
 ### Building For Production
 
 ```bash
-pnpm build
+bun build
 ```
 
 ### Preview Production Build
 
 ```bash
-pnpm preview
+bun preview
 ```
 
 ## Project Structure
@@ -299,13 +299,13 @@ This project uses [Biome](https://biomejs.dev/) for linting and formatting.
 
 ```bash
 # Run linter
-pnpm lint
+bun lint
 
 # Format code
-pnpm format
+bun format
 
 # Run both checks
-pnpm check
+bun check
 ```
 
 ## Testing
@@ -314,10 +314,10 @@ This project uses [Vitest](https://vitest.dev/) for testing.
 
 ```bash
 # Run all tests
-pnpm test
+bun test
 
 # Run specific test
-pnpm test <pattern>
+bun test <pattern>
 ```
 
 ## Database Schema
@@ -332,8 +332,8 @@ The Prisma schema is located at `prisma/schema.prisma`. Key models:
 After modifying the schema, run:
 
 ```bash
-pnpm db:generate
-pnpm db:push
+bun db:generate
+bun db:push
 ```
 
 ## Learn More
