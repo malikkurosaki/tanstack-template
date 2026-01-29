@@ -1,112 +1,149 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import * as z from "zod"
+import { execSync } from "node:child_process"
+import fs from "node:fs"
+import path from "node:path"
 
 const mcpServer = new McpServer({
     name: "tanstack-mcp",
-    version: "1.0.0",
-    description: "MCP server for TanStack application",
+    version: "1.1.0",
+    description: "MCP server for TanStack application with safety guard",
 })
 
-mcpServer.registerTool(
-    "ping_makuro",
-    {
-        inputSchema: z.object({
-            message: z.string().optional(),
-        }),
-    },
-    async ({ message }) => {
-        return {
-            content: [
-                {
-                    type: "text",
-                    text: message ? `pong: ${message}` : "pong",
-                },
-            ],
-        }
-    }
-)
-
-mcpServer.registerTool(
-    "get_project_info",
-    {
-        inputSchema: z.object({
-            type: z.enum(["package", "git", "env"]).optional(),
-        }),
-    },
-    async ({ type }) => {
-        return {
-            content: [
-                {
-                    type: "text",
-                    text: JSON.stringify({
-                        name: "TanStack App",
-                        version: "1.0.0",
-                        tech: ["React", "TanStack Router", "TanStack Query", "Elysia", "Prisma"],
-                        features: ["Auth", "DB", "Testing"],
-                        requestedType: type || "all",
-                    }, null, 2),
-                },
-            ],
-        }
-    }
-)
-
-mcpServer.registerTool(
-    "execute_command",
-    {
-        inputSchema: z.object({
-            command: z.string(),
-        }),
-    },
-    async ({ command }) => {
-        return {
-            content: [
-                {
-                    type: "text",
-                    text: `Command "${command}" would be executed. Note: This is a demo - actual execution requires careful permission handling.`,
-                },
-            ],
-        }
-    }
-)
-
+/* ------------------------------------------------------------------
+ * 📦 TOOL: Mantine Component
+ * ------------------------------------------------------------------ */
 mcpServer.registerTool(
     "mantine_component",
     {
-        description: "Get a random Mantine component",
+        description: "Get Mantine LLM reference",
     },
     async () => {
         const res = await fetch("https://mantine.dev/llms.txt")
         const text = await res.text()
         return {
+            content: [{ type: "text", text }],
+        }
+    }
+)
+
+/* ------------------------------------------------------------------
+ * 🔔 TOOL: Notify User
+ * ------------------------------------------------------------------ */
+mcpServer.registerTool(
+    "notify_user",
+    {
+        title: "kirim informasi ke user",
+        description:
+            "Gunakan tool ini untuk mengirim informasi ke user , gunakan format whatsapp text yang baik dan benar",
+        inputSchema: z.object({
+            text: z.string(),
+        }),
+    },
+    async ({ text }) => {
+        const res = await fetch(
+            `https://wa.wibudev.com/code?nom=6289505046093&text=${encodeURIComponent(
+                text
+            )}`
+        )
+        const data = await res.json()
+        return {
+            content: [{ type: "text", text: JSON.stringify(data) }],
+        }
+    }
+)
+
+/* ------------------------------------------------------------------
+ * 🛡️ TOOL: Git Snapshot (Auto Safety Net)
+ * ------------------------------------------------------------------ */
+mcpServer.registerTool(
+    "git_snapshot",
+    {
+        title: "buat snapshot git",
+        description:
+            "WAJIB dipanggil sebelum menghapus, menimpa, atau memodifikasi banyak file",
+    },
+    async () => {
+        try {
+            execSync("git add -A", { stdio: "ignore" })
+            execSync(
+                `git commit -m "opencode snapshot: ${new Date().toISOString()}"`,
+                { stdio: "ignore" }
+            )
+            return {
+                content: [{ type: "text", text: "Git snapshot created" }],
+            }
+        } catch {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: "Snapshot skipped (no changes or git not initialized)",
+                    },
+                ],
+            }
+        }
+    }
+)
+
+/* ------------------------------------------------------------------
+ * 🔄 TOOL: Git Rollback
+ * ------------------------------------------------------------------ */
+mcpServer.registerTool(
+    "git_rollback",
+    {
+        title: "rollback perubahan terakhir",
+        description:
+            "Gunakan jika terjadi kesalahan atau hasil tidak sesuai",
+    },
+    async () => {
+        execSync("git reset --hard HEAD~1", { stdio: "ignore" })
+        return {
+            content: [{ type: "text", text: "Rollback to previous snapshot done" }],
+        }
+    }
+)
+
+/* ------------------------------------------------------------------
+ * 🗑️ TOOL: Safe Delete (Soft Delete)
+ * ------------------------------------------------------------------ */
+mcpServer.registerTool(
+    "safe_delete",
+    {
+        title: "hapus file dengan aman",
+        description:
+            "Memindahkan file ke .opencode-trash agar bisa dikembalikan",
+        inputSchema: z.object({
+            filePath: z.string(),
+        }),
+    },
+    async ({ filePath }) => {
+        const trashDir = ".opencode-trash"
+        if (!fs.existsSync(trashDir)) {
+            fs.mkdirSync(trashDir)
+        }
+
+        const base = path.basename(filePath)
+        const target = path.join(
+            trashDir,
+            `${base}.${Date.now()}.bak`
+        )
+
+        fs.renameSync(filePath, target)
+
+        return {
             content: [
                 {
                     type: "text",
-                    text: text,
+                    text: `File moved to ${target}`,
                 },
             ],
         }
     }
 )
 
-mcpServer.registerTool("notify_user", {
-    title: "kirim informasi ke user",
-    description: "gunakan tool ini untuk mengirim iformasi ke user jika task selesai atau butuh touch user",
-    inputSchema: z.object({
-        text: z.string()
-    })
-}, async ({text}) => {
-    const res = await fetch(`https://wa.wibudev.com/code?nom=6289505046093&text=${encodeURIComponent(text)}`)
-    const data = await res.json()
-    return {
-        content: [
-            {
-                type: "text",
-                text: JSON.stringify(data)
-            }
-        ]
-    }
-})
-
+/* ------------------------------------------------------------------
+ * 🚀 CONNECT
+ * ------------------------------------------------------------------ */
 await mcpServer.connect(new StdioServerTransport())
