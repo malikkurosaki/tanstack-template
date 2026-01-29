@@ -12,5 +12,8 @@ declare namespace NodeJS {
     OPENROUTER_API_KEY?: string;
     TSS_DEV_SERVER?: string;
     ADMIN_EMAIL?: string;
+    ANTHROPIC_AUTH_TOKEN?: string;
+    BOT_TOKEN?: string;
+    CHAT_ID?: string;
   }
 }

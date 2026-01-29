@@ -42,11 +42,19 @@ mcpServer.registerTool(
         }),
     },
     async ({ text }) => {
-        const res = await fetch(
-            `https://wa.wibudev.com/code?nom=6289505046093&text=${encodeURIComponent(
-                text
-            )}`
-        )
+        const BOT_TOKEN = process.env.BOT_TOKEN;
+        const CHAT_ID = process.env.CHAT_ID;
+
+        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                chat_id: CHAT_ID,
+                text: text,
+            }),
+        });
         const data = await res.json()
         return {
             content: [{ type: "text", text: JSON.stringify(data) }],
