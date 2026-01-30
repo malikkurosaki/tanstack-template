@@ -1,6 +1,11 @@
+import type {
+	ProjectPriority,
+	TaskPriority,
+	TaskStatus,
+	User,
+} from "@prisma/client";
 import Elysia, { t } from "elysia";
 import { prisma } from "@/lib/db";
-import { ProjectPriority, TaskPriority, TaskStatus, User } from "@/generated/prisma/client";
 
 const TaskApi = new Elysia({
 	prefix: "task",
@@ -200,11 +205,11 @@ const TaskApi = new Elysia({
 					position: body.position,
 					assignments: body.assigneeIds
 						? {
-							create: body.assigneeIds.map((userId: string) => ({
-								userId,
-								assignedById: user.id,
-							})),
-						}
+								create: body.assigneeIds.map((userId: string) => ({
+									userId,
+									assignedById: user.id,
+								})),
+							}
 						: undefined,
 				},
 				include: {
@@ -276,8 +281,8 @@ const TaskApi = new Elysia({
 				data: {
 					title: body.title,
 					description: body.description,
-					status: body.status as TaskStatus || "TODO",
-					priority: body.priority as TaskPriority || "MEDIUM",
+					status: (body.status as TaskStatus) || "TODO",
+					priority: (body.priority as TaskPriority) || "MEDIUM",
 					startDate: body.startDate,
 					dueDate: body.dueDate,
 					estimatedHours: body.estimatedHours,
@@ -315,7 +320,7 @@ const TaskApi = new Elysia({
 					data: {
 						taskId: id,
 						fromStatus: existingTask.status,
-						toStatus: body.status as TaskStatus || "TODO",
+						toStatus: (body.status as TaskStatus) || "TODO",
 						changedById: user.id,
 					},
 				});
